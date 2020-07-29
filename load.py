@@ -1,10 +1,10 @@
 
-def parse_name(name_str):
+def _parse_name(name_str):
     """Parses a name from a string with whitespaces, to a tuple of names
 
     Args:
         name_str (str): A string of a full name. Ex. "Joe Schmo" or
-        " Joe Schmo" or "Joe  Schmo  "
+                        " Joe Schmo" or "Joe  Schmo  "
 
     Returns:
         tuple: A tuple of the form (first_name, last_name)
@@ -29,7 +29,7 @@ def load_campers(filename):
     campers = []
     with open(filename, 'r') as f:
         for line in f.readlines():
-            campers.append(parse_name(line))
+            campers.append(_parse_name(line))
     return campers
 
 
@@ -43,9 +43,9 @@ def load_counselors(filename):
 
     Returns:
         tuple: A length two tuple with the following values:
-               The list of the counselor names as tuples
-               The list of tables, each as a list of occupant
-                name tuples
+                The list of the counselor names as tuples
+                The list of tables, each as a list of occupant
+                    name tuples
     """
     tables = []
     counselors = []
@@ -53,7 +53,7 @@ def load_counselors(filename):
         for line in f.readlines():
             table = []
             for name in line.split(','):
-                parsed_name = parse_name(name)
+                parsed_name = _parse_name(name)
                 counselors.append(parsed_name)
                 table.append(parsed_name)
             tables.append(table)
