@@ -55,17 +55,36 @@ def load_counselors(filename):
     """
     tables = []
     counselors = []
+    aides = []
+    aide_idxs = []
+    isAides = False
 
-    df = pd.read_csv(filename, header=None)
-    for row in df.itertuples(index=False):
+    with open(filename, 'r') as f:
+        max_col = max([len(line.split(',')) for line in f.readlines()])
+
+    df = pd.read_csv(filename, header=None, names=list(range(max_col)))
+    for t, row in enumerate(df.itertuples(index=False)):
         table = []
         for name in row:
-            parsed_name = _parse_name(name)
-            counselors.append(parsed_name)
-            table.append(parsed_name)
-        tables.append(table)
+            if name == "Aides:":
+                isAides = True
+                continue
+            if name is not None and isinstance(name, str):
+                print(name)
+                if name.strip() == "Aide":
+                    aide_idxs.append(t)
+                elif name.strip() != '':
+                    parsed_name = _parse_name(name)
 
-    return counselors, tables
+                    if isAides:
+                        aides.append(parsed_name)
+                    else:
+                        table.append(parsed_name)
+                        counselors.append(parsed_name)
+        if not isAides:
+            tables.append(table)
+
+    return counselors, tables, aides, aide_idxs
 
 
 def load_conflicts(filename):
@@ -102,9 +121,10 @@ def main():
     campers = load_campers(camper_list_csv)
 
     counselor_tables_csv = data_directory / 'Counselor Tables.csv'
-    counselors, tables = load_counselors(counselor_tables_csv)
+    counselors, tables, aides, aide_idxs = \
+        load_counselors(counselor_tables_csv)
 
-    return campers, counselors, tables
+    return campers, counselors, tables, aides, aide_idxs
 
 
 if __name__ == "__main__":
