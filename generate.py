@@ -31,8 +31,8 @@ def conflicts(camper, table, conflict_dict):
     """ Checks to see if the camper conflicts with someone at the table
 
     Args:
-        camper (tuple): A name tuple. Ex. ("Joe", "Schmo")
-        table (list): List of name tuples
+        camper (Name): The camper name to check for conflicts
+        table (list): List of Names at the table
         conflict_dict (dict): A dictionary with name strings as keys
                                 (Ex. "Joe Schmo"), and lists of name
                                 strings as the values where the two names
@@ -41,15 +41,12 @@ def conflicts(camper, table, conflict_dict):
     Returns:
         bool: True if the camper conflicts with someone at the table
     """
-    c_full_name = ' '.join(camper)
     for t_name in table:
-        t_full_name = ' '.join(t_name)
-
-        if conflict_dict[c_full_name] is not None:
-            if t_full_name in conflict_dict[c_full_name]:
+        if camper.full in conflict_dict:
+            if t_name.full in conflict_dict[camper.full]:
                 return True
-        if conflict_dict[t_full_name] is not None:
-            if c_full_name in conflict_dict[t_full_name]:
+        if t_name.full in conflict_dict:
+            if camper.full in conflict_dict[t_name.full]:
                 return True
 
     return False
@@ -59,10 +56,9 @@ def seed_camper(camper, in_tables, conflict_dict):
     """ Seeds the camper into a table
 
     Args:
-        camper (tuple): A name tuple. Ex. ("Joe", "Schmo")
-        in_tables (list): A list of lists (each a list of name tuples),
-                            The list of tables, where a table is a list of
-                            the names sitting at it
+        camper (Name): The camper to seed into the tables
+        in_tables (list): The list of tables, where a table is a list of
+                            the Names sitting at it
         conflict_dict (dict): A dictionary with name strings as keys
                                 (Ex. "Joe Schmo"), and lists of name
                                 strings as the values where the two names
@@ -76,7 +72,7 @@ def seed_camper(camper, in_tables, conflict_dict):
     tables = in_tables.copy()
     shuffle(tables)
     for i, table in enumerate(tables):
-        if not conflicts(table, camper, conflict_dict) \
+        if not conflicts(camper, table, conflict_dict) \
                 and len(table) < TABLE_SIZE:
             table.append(camper)
             return tables
@@ -87,11 +83,10 @@ def seed_section(in_section, in_tables, conflict_dict):
     """ Seeds the section into tables
 
     Args:
-        in_section (list): A list of lists (each a list of name tuples),
-                            The names to be seeded into tables
-        in_tables (list): A list of lists (each a list of name tuples),
-                            The list of tables, where a table is a list of
-                            the names sitting at it
+        in_section (list): A list of lists (each a list of Names),
+                            The Names to be seeded into tables
+        in_tables (list): The list of tables, where a table is a list of
+                            the Names sitting at it
         conflict_dict (dict): A dictionary with name strings as keys
                                 (Ex. "Joe Schmo"), and lists of name
                                 strings as the values where the two names
@@ -101,7 +96,7 @@ def seed_section(in_section, in_tables, conflict_dict):
         tuple: A tuple of length two where the first element is a bool
                 indicating whether the seed was successful, and the
                 second is an iterable. If successful, it is the new
-                tables list. Otherwise, it is a tuple for the camper name
+                tables list. Otherwise, it is a Name for the camper
                 who could not be seeded.
     """
     tables = in_tables.copy()
@@ -112,7 +107,7 @@ def seed_section(in_section, in_tables, conflict_dict):
         if output:
             tables = output
         else:
-            return False, camper  # undo last seed
+            return False, camper
     return True, tables
 
 
@@ -120,29 +115,29 @@ def seed_tables(campers, in_tables, conflict_dict):
     """ Seed all the campers into the tables
 
     Args:
-        campers (list): A list of tuple camper names
-        in_tables (list): A list of lists (each a list of name tuples),
-                            The list of tables, where a table is a list of
-                            the names sitting at it
+        campers (list): A list of camper Names
+        in_tables (list): The list of tables, where a table is a list of
+                            the Names sitting at it
         conflict_dict (dict): A dictionary with name strings as keys
                                 (Ex. "Joe Schmo"), and lists of name
                                 strings as the values where the two names
                                 cannot sit at the same table
 
-
     Returns:
-        [type]: [description]
+        list: The new tables list
     """
     global NUM_TABLES
-    sections = _sectionalize_list(NUM_TABLES, campers)
+    old_sections = _sectionalize_list(NUM_TABLES, campers)
+    sections = old_sections.copy()
     tables = in_tables.copy()
     shuffle(sections)
     for section in sections:
+        # print(f"Working on section {old_sections.index(section)}")
         success, output = seed_section(section, tables, conflict_dict)
         if success:
             tables = output
         else:
-            pass
+            print(f"Seed issue: {output.full}")
 
     return tables
 
@@ -151,8 +146,8 @@ def generate_conflicts(campers, counselors):
     """ Generates a Conflict dict from last names of campers and counselors
 
     Args:
-        campers (list): A list of tuple camper names
-        counselors (list): A list of tuple counselor names
+        campers (list): A list of camper Names
+        counselors (list): A list of counselor Names
 
     Returns:
         dict: A dictionary of conflicts where the keys and values
@@ -165,20 +160,17 @@ def generate_conflicts(campers, counselors):
     conflict_dict = {}
     for name in campers + counselors:
         for other in campers + counselors:
-            if name[-1] == other[-1]:
-                full_name = ' '.join(name)
-                full_other = ' '.join(other)
-
-                if full_name not in conflict_dict \
-                        and full_other not in conflict_dict:
-                    conflict_dict[full_name] = []
-                    conflict_dict[full_name].append(full_other)
-                elif full_name in conflict_dict:
-                    conflict_dict[full_name].append(full_other)
-                elif full_other in conflict_dict:
-                    conflict_dict[full_other].append(full_name)
-                else:
-                    print("UHOH! Should never get here! \
-                        (in generate_conflicts)")
+            if name == other:
+                continue
+            if name.last == other.last:
+                if name.full not in conflict_dict \
+                        and other.full not in conflict_dict:
+                    conflict_dict[name.full] = []
+                    conflict_dict[name.full].append(other.full)
+                elif name.full in conflict_dict:
+                    conflict_dict[name.full].append(other.full)
+                elif other.full in conflict_dict \
+                        and name.full not in conflict_dict[other.full]:
+                    conflict_dict[other.full].append(name.full)
 
     return conflict_dict

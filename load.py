@@ -1,19 +1,25 @@
+import pandas as pd
+from collections import namedtuple
+
+Name = namedtuple("Name", "first last full")
+
 
 def _parse_name(name_str):
-    """Parses a name from a string with whitespaces, to a tuple of names
+    """Parses a name from a string with whitespaces
 
     Args:
         name_str (str): A string of a full name. Ex. "Joe Schmo" or
                         " Joe Schmo" or "Joe  Schmo  "
 
     Returns:
-        tuple: A tuple of the form (first_name, last_name)
+        Name: A namedtuple with first, last, and full as values
     """
     split_name = name_str.split(' ')
-    for name in reversed(split_name):
-        if name == '':
-            split_name.remove(name)
-    return tuple(split_name)
+
+    first, *_, last = [name.strip() for name in split_name if name != '']
+    full = ' '.join((first, last))
+
+    return Name(first, last, full)
 
 
 def load_campers(filename):
@@ -24,12 +30,13 @@ def load_campers(filename):
                         on a new line ordered by cabin, mallards to crows
 
     Returns:
-        list: The list of camper names as tuples
+        list: The list of camper Names
     """
     campers = []
-    with open(filename, 'r') as f:
-        for line in f.readlines():
-            campers.append(_parse_name(line))
+    df = pd.read_csv(filename, header=None)
+    for row in df.itertuples(index=False):
+        parsed_name = _parse_name(row[0])
+        campers.append(parsed_name)
     return campers
 
 
@@ -44,35 +51,72 @@ def load_counselors(filename):
     Returns:
         tuple: A length two tuple with the following values:
                 The list of the counselor names as tuples
-                The list of tables, each as a list of occupant
-                    name tuples
+                The list of tables, each as a list of occupant Names
     """
     tables = []
     counselors = []
-    with open(filename, 'r') as f:
-        for line in f.readlines():
-            table = []
-            for name in line.split(','):
-                parsed_name = _parse_name(name)
-                counselors.append(parsed_name)
-                table.append(parsed_name)
-            tables.append(table)
+
+    df = pd.read_csv(filename, header=None)
+    for row in df.itertuples(index=False):
+        table = []
+        for name in row:
+            parsed_name = _parse_name(name)
+            counselors.append(parsed_name)
+            table.append(parsed_name)
+        tables.append(table)
+
     return counselors, tables
 
 
-if __name__ == "__main__":
-    """ Loads counselors, campers, and tables from default file locations
-        and then prints them to the console
+def load_conflicts(filename):
+    """ Load the conflicts from a file
+
+    Args:
+        filename (str): The name of the .csv file with the conflicts
+
+    Returns:
+        dict: A dictionary with name strings as keys
+                (Ex. "Joe Schmo"), and lists of name
+                strings as the values where the two names
+                cannot sit at the same table
+    """
+    df = pd.read_csv(filename, header=None)
+    return df.to_dict(orient='list')
+
+
+def main():
+    """ Loads counselors, campers, tables, and conflict_dict from default file
+        locations
+
+    Returns:
+        tuple: A tuple of length 3 with the following values:
+                A list of camper Names
+                A list of counselor Names
+                A list of table lists of Names
     """
     from pathlib import Path
-    data_directory = Path(__file__).parent / 'data'  # change to configurable
+    # TODO: change below to be configurable
+    data_directory = Path(__file__).parent / 'data'
 
-    camper_list_csv = data_directory / 'Camper List - Mallards to Crows.csv'
+    camper_list_csv = data_directory / 'Camper List.csv'
     campers = load_campers(camper_list_csv)
 
     counselor_tables_csv = data_directory / 'Counselor Tables.csv'
     counselors, tables = load_counselors(counselor_tables_csv)
 
-    print(campers)
-    print(counselors)
-    print(tables)
+    return campers, counselors, tables
+
+
+if __name__ == "__main__":
+    """ Prints the loaded data
+    """
+    campers, counselors, tables = main()
+    print("campers")
+    for camper in campers:
+        print(f'\t{camper.full}')
+    print("counselors")
+    for counselor in counselors:
+        print(f'\t{counselor.full}')
+    print("tables")
+    for table in tables:
+        print(f'\t{table}')
