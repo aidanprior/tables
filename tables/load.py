@@ -1,28 +1,29 @@
 import pandas as pd
 from collections import namedtuple
 
-Name = namedtuple("Name", "first last full")
+Name = namedtuple("Name", "first last full rank")
 
 
-def _parse_name(name_str):
+def _parse_name(name_str: str, rank: int = None):
     """Parses a name from a string with whitespaces
 
     Args:
         name_str (str): A string of a full name. Ex. "Joe Schmo" or
                         " Joe Schmo" or "Joe  Schmo  "
+        rank (int): The age rank
 
     Returns:
-        Name: A namedtuple with first, last, and full as values
+        Name: A namedtuple with first, last, full, and rank as values
     """
     split_name = name_str.split(' ')
 
     first, *_, last = [name.strip() for name in split_name if name != '']
     full = ' '.join((first, last))
 
-    return Name(first, last, full)
+    return Name(first, last, full, rank)
 
 
-def load_campers(filename):
+def load_campers(filename: str):
     """ Loads a list of campers from a file
 
     Args:
@@ -34,13 +35,13 @@ def load_campers(filename):
     """
     campers = []
     df = pd.read_csv(filename, header=None)
-    for row in df.itertuples(index=False):
-        parsed_name = _parse_name(row[0])
+    for row in df.itertuples():
+        parsed_name = _parse_name(row[1], row.Index)
         campers.append(parsed_name)
     return campers
 
 
-def load_counselors(filename):
+def load_counselors(filename: str):
     """ Loads a list of couselors and tables from a file
 
     Args:
@@ -70,7 +71,6 @@ def load_counselors(filename):
                 isAides = True
                 continue
             if name is not None and isinstance(name, str):
-                print(name)
                 if name.strip() == "Aide":
                     aide_idxs.append(t)
                 elif name.strip() != '':
@@ -87,7 +87,7 @@ def load_counselors(filename):
     return counselors, tables, aides, aide_idxs
 
 
-def load_conflicts(filename):
+def load_conflicts(filename: str):
     """ Load the conflicts from a file
 
     Args:

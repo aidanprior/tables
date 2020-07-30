@@ -1,11 +1,12 @@
 from random import shuffle
 from copy import deepcopy
+from load import Name
 
 NUM_TABLES = 21
 TABLE_SIZE = 10
 
 
-def _sectionalize_list(num_sections, to_sectionalize):
+def _sectionalize_list(num_sections: int, to_sectionalize: list):
     """ Splits the to_sectionalize list into a list of sections
 
     Args:
@@ -28,7 +29,7 @@ def _sectionalize_list(num_sections, to_sectionalize):
     return sections
 
 
-def conflicts(camper, table, conflict_dict):
+def conflicts(camper: Name, table: list, conflict_dict: dict):
     """ Checks to see if the camper conflicts with someone at the table
 
     Args:
@@ -53,7 +54,7 @@ def conflicts(camper, table, conflict_dict):
     return False
 
 
-def seed_camper(camper, in_tables, conflict_dict):
+def seed_camper(camper: Name, in_tables: list, conflict_dict: dict):
     """ Seeds the camper into a table
 
     Args:
@@ -103,7 +104,7 @@ def seed_camper(camper, in_tables, conflict_dict):
     return output
 
 
-def seed_section(in_section, in_tables, conflict_dict):
+def seed_section(in_section: list, in_tables: list, conflict_dict: dict):
     """ Seeds the section into tables
 
     Args:
@@ -135,7 +136,8 @@ def seed_section(in_section, in_tables, conflict_dict):
     return True, tables
 
 
-def seed_aide(aide, in_tables, conflict_dict, aide_idxs):
+def seed_aide(aide: Name, in_tables: list, conflict_dict: dict,
+              aide_idxs: list):
     """ Seeds the aide into a table
 
     Args:
@@ -164,7 +166,8 @@ def seed_aide(aide, in_tables, conflict_dict, aide_idxs):
     return False
 
 
-def seed_aides(in_aides, in_tables, conflict_dict, aide_idxs):
+def seed_aides(in_aides: list, in_tables: list, conflict_dict: dict,
+               aide_idxs: list):
     """ Seeds all the aides into the aide tables
 
     Args:
@@ -198,7 +201,8 @@ def seed_aides(in_aides, in_tables, conflict_dict, aide_idxs):
     return True, tables
 
 
-def seed_tables(campers, in_tables, conflict_dict, aides, aide_idxs):
+def seed_tables(campers: list, in_tables: list, conflict_dict: dict,
+                aides: list, aide_idxs: list):
     """ Seed all the campers into the tables
 
     Args:
@@ -247,7 +251,7 @@ def seed_tables(campers, in_tables, conflict_dict, aides, aide_idxs):
     return tables
 
 
-def generate_conflicts(all_names):
+def generate_conflicts(all_names: list):
     """ Generates a Conflict dict from last names of campers and counselors
 
     Args:

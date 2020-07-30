@@ -13,4 +13,4 @@ The script will generate a "Conflicts.csv" file if one does not yet exist, where
     These lists may be added to, removed from, or even new lists added to
   
 If the "Conflicts.csv" file already exists, then the script will use those conflicts to generate a week of tables
-    and save it in a "YYYY-Week-#.csv" file where the year and week are provided by via commandline arguments
+    and save it in a "Week-#.csv" file where the week number is provided by via commandline arguments
