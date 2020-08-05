@@ -1,5 +1,5 @@
 .vscode/
-data/
 _*/
+.*/
 
-testing_ground.py
+*.tsv
