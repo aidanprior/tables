@@ -1,5 +1,10 @@
 .vscode/
 _*/
 .*/
+bin/
+obj/
 
 *.tsv
+
+.fake
+.ionide

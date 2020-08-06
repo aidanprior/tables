@@ -15,7 +15,7 @@ let mutable numTables = 21
 let rand = Random DateTime.Now.Millisecond
 
 // compile to single exe file:
-// dotnet publish -r win-x86 -c Release /p:PublishSingleFile=true /p:PublishTrimmed=true
+// dotnet publish -r win-x86 -c Release /p:PublishSingleFile=true /p:PublishTrimmed=true -o prod
 
 // WRAPPERS:
 
@@ -132,8 +132,7 @@ let tryTableWithCamper conflicts (camper: Camper) table  =
                 TotalRank = campers |> List.sumBy (fun cp -> cp.Rank)
             }
     
-    matchNoConflict op conflicts camper.Name table
-        
+    matchNoConflict op conflicts camper.Name table    
 
 let tryTableWithAide conflicts aide counselorTable =
     let op =
@@ -331,17 +330,29 @@ let writeTables weekNumber printTables =
     printTables |> List.map createTableHeader |> rowListJoin |> stream.WriteLine
     writeLine printTables
 
-let mapToNameTableNoList pTable =
+let mapCampersToNameTableNoList pTable =
     let tableNo = pTable.TableNo
     let camperNameStrs = pTable.Camper::pTable.Campers |> List.map (fun cp -> commaFullName cp.Name)
+    camperNameStrs |> List.map (fun str -> [str; string (tableNo + 1)])
+
+let mapAidesToNameTableNoList pTable = 
+    let tableNo = pTable.TableNo
     let aideStrs = pTable.Aides |> List.map commaFullName
-    camperNameStrs @ aideStrs |> List.map (fun str -> [str; string (tableNo + 1)])
+    aideStrs |> List.map (fun str -> [str; string (tableNo + 1)])
 
 let writeLookup weekNumber printTables = 
     use stream = new StreamWriter (sprintf "Lookup-Week%i.tsv" weekNumber)
     stream.WriteLine "Name:\tTable:" //Write Header
     printTables 
-    |> List.collect mapToNameTableNoList
+    |> List.collect mapCampersToNameTableNoList
+    |> List.sortBy (fun lst -> lst.Head)
+    |> List.map rowListJoin
+    |> List.iter stream.WriteLine
+
+    stream.WriteLine ""
+
+    printTables
+    |> List.collect mapAidesToNameTableNoList
     |> List.sortBy (fun lst -> lst.Head)
     |> List.map rowListJoin
     |> List.iter stream.WriteLine
@@ -358,7 +369,7 @@ let tryLoad (f: string -> 'a) filename : 'a option =
 
 let exitProgram () =
     printfn "Press ENTER to exit"
-    Console.ReadLine () |> exit 1 
+    Console.ReadLine () |> exit 1
     ()
 
 let run (args: string list) =
@@ -428,7 +439,6 @@ let run (args: string list) =
                         pTables |> writeLookup weekNumber
 
                     [startWeek..endWeek] |> List.iter seedThenWriteWeek
-
 
 [<EntryPoint>]
 let main argv =
